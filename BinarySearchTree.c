@@ -1,170 +1,167 @@
-// C program to insert a node in AVL tree
+//=======================================================================================================
+//
+//					CSE2025 - DATA STRUCTURES Term Project #2
+//						
+//						  Yasin Alper Bingül - 170517033
+//
+//=======================================================================================================
 #include<stdio.h>
 #include<stdlib.h>
+#include <math.h>
 
-// An AVL tree node
-struct Node
-{
+//Binary Tree Node struct
+struct BTNodeType{
+	struct BTNodeType *left;
+	struct BTNodeType *right;
 	int key;
-	struct Node *left;
-	struct Node *right;
 	int height;
 };
 
-// A utility function to get maximum of two integers
-int max(int a, int b);
-
-// A utility function to get the height of the tree
-int height(struct Node *N)
+//This function creates new Binary Search Tree node (new root)
+struct BTNodeType* newNode(int key)
 {
-	if (N == NULL)
-		return 0;
-	return N->height;
+	struct BTNodeType* root = (struct BTNodeType*)malloc(sizeof(struct BTNodeType));
+	
+	root->key = key;
+	root->left = NULL;
+	root->right = NULL;
+	root->height = 1;
+	
+	return(root);
 }
 
-// A utility function to get maximum of two integers
-int max(int a, int b)
+//This function rotate right the Binary Search Tree to balance tree (for better access time)
+struct BTNodeType *rightRotate(struct BTNodeType *p)
 {
-	return (a > b)? a : b;
+	//printf("Right rotate\n");
+	struct BTNodeType *pLeft = p->left;
+	struct BTNodeType *pLRight = pLeft->right;
+	
+	//pLeft > p
+	//pLRight > pLeft
+	//If pLeft would be new top node, then pLeft's left would be p and pLeft's right would be pLRight (rotation)
+	pLeft->right = p;
+	p->left = pLRight;
+	
+	//Update the height values
+	p->height = findBigger(findHeight(p->left), findHeight(p->right))+1;
+	pLeft->height = findBigger(findHeight(pLeft->left), findHeight(pLeft->right))+1;
+	
+	//Return the new local top node / root
+	return pLeft;
 }
 
-/* Helper function that allocates a new node with the given key and
-	NULL left and right pointers. */
-struct Node* newNode(int key)
+//This function rotate left the Binary Search Tree to balance tree (for better access time)
+struct BTNodeType *leftRotate(struct BTNodeType *p)
 {
-	struct Node* node = (struct Node*)
-						malloc(sizeof(struct Node));
-	node->key = key;
-	node->left = NULL;
-	node->right = NULL;
-	node->height = 1; // new node is initially added at leaf
-	return(node);
+	//printf("Left rotate\n");
+	struct BTNodeType *pRight = p->right;
+	struct BTNodeType *pRLeft = pRight->left;
+
+	//pLeft > p
+	//pLRight > pLeft
+	//If pLeft would be new top node, then pLeft's left would be p and pLeft's right would be pLRight (rotation)
+	pRight->left = p;
+	p->right = pRLeft;
+
+	//Update the height values
+	p->height = findBigger(findHeight(p->left), findHeight(p->right))+1;
+	pRight->height = findBigger(findHeight(pRight->left), findHeight(pRight->right))+1;
+
+	//Return the new local top node / root
+	return pRight;
 }
 
-// A utility function to right rotate subtree rooted with y
-// See the diagram given above.
-struct Node *rightRotate(struct Node *y)
+//This function compares left and right heights of entered node as parameter
+int compareHeights(struct BTNodeType *p)
 {
-	printf("Right rotate\n");
-	struct Node *x = y->left;
-	struct Node *T2 = x->right;
-
-	// Perform rotation
-	x->right = y;
-	y->left = T2;
-
-	// Update heights
-	y->height = max(height(y->left), height(y->right))+1;
-	x->height = max(height(x->left), height(x->right))+1;
-
-	// Return new root
-	return x;
-}
-
-// A utility function to left rotate subtree rooted with x
-// See the diagram given above.
-struct Node *leftRotate(struct Node *x)
-{
-	printf("Left rotate\n");
-	struct Node *y = x->right;
-	struct Node *T2 = y->left;
-
-	// Perform rotation
-	y->left = x;
-	x->right = T2;
-
-	// Update heights
-	x->height = max(height(x->left), height(x->right))+1;
-	y->height = max(height(y->left), height(y->right))+1;
-
-	// Return new root
-	return y;
-}
-
-// Get Balance factor of node N
-int getBalance(struct Node *N)
-{
-	if (N == NULL)
+	if (p == NULL)
 		return 0;
 	
-	printf("Get Balanced (left hegiht: %d)- (right height: %d): %d\n",height(N->left),height(N->right),height(N->left) - height(N->right));
-	return height(N->left) - height(N->right);
+	//printf("Height Difference (left hegiht: %d)- (right height: %d): %d\n",findHeight(N->left),findHeight(N->right),findHeight(N->left) - findHeight(N->right));
+	return findHeight(p->left) - findHeight(p->right);
 }
 
-// Recursive function to insert a key in the subtree rooted
-// with node and returns the new root of the subtree.
-struct Node* insert(struct Node* node, int key)
+//This function compares two values and returns the bigger one
+int findBigger(int num1, int num2)
 {
-	printf("Inserting %d\n",key);
-	/* 1. Perform the normal BST insertion */
-	if (node == NULL)
+	if(num1 > num2)
+		return num1;
+	else
+		return num2;
+}
+
+//This function returns the height value of entered node as parameter
+int findHeight(struct BTNodeType *p)
+{
+	if (p == NULL){
+		return 0;
+	}
+		
+	return p->height;
+}
+
+//This function inserts a new node according to rules
+struct BTNodeType* insert(struct BTNodeType* p, int key)
+{
+	//printf("Inserting %d\n",key);
+	//Insert new node to given root. If there is no root, then create a new one
+	if (p == NULL)
 		return(newNode(key));
 
-	if (key < node->key){
-		printf("Going to left\n");
-		node->left = insert(node->left, key);
+	if (key < p->key){
+		//printf("Going to left\n");
+		p->left = insert(p->left, key);
 		
 	}
-	else if (key > node->key){
-		printf("Going to right\n");
-		node->right = insert(node->right, key);
-		
+	else if (key > p->key){
+		//printf("Going to right\n");
+		p->right = insert(p->right, key);
 	}
-	else // Equal keys are not allowed in BST
-		return node;
-	
-	printf("Insertion complated.\n");
-	printf("Height of inserted node before update : %d\n",node->height);
-	/* 2. Update height of this ancestor node */
-	node->height = 1 + max(height(node->left),
-						height(node->right));
-	printf("Height of inserted node after update : %d\n",node->height);
-	
-	/* 3. Get the balance factor of this ancestor
-		node to check whether this node became
-		unbalanced */
-	int balance = getBalance(node);
 
-	// If this node becomes unbalanced, then
-	// there are 4 cases
+	//printf("node (%d)'s depth level is %d\n",p->key, p->depthLevel);
+	
+	//printf("Insertion complated.\n");
+	//printf("Height of inserted node before update : %d\n",p->height);
+	
+	//Update the height value 
+	p->height = 1 + findBigger(findHeight(p->left), findHeight(p->right));
+	//printf("Height of inserted node after update %d: %d\n",p->key,p->height);
+	
+	//Compare the left and right height
+	int comparisonHeights = compareHeights(p);
 
-	// Left Left Case
-	if (balance > 1 && key < node->left->key){
-		printf("balance>1 and key(%d) < (node->left->key)(%d)",key,node->left->key);
-		return rightRotate(node);
+	if (comparisonHeights > 1 && key < p->left->key){
+		//printf("comparisonHeights>1 and key(%d) < (p->left->key)(%d)",key,p->left->key);
+		return rightRotate(p);
 	}
 		
-	// Right Right Case
-	if (balance < -1 && key > node->right->key){
-		printf("balance<-1 and key(%d) > (node->right->key)(%d)",key,node->right->key);
-		return leftRotate(node);
+	if (comparisonHeights < -1 && key > p->right->key){
+		//printf("comparisonHeights<-1 and key(%d) > (p->right->key)(%d)",key,p->right->key);
+		return leftRotate(p);
 	}
 		
-	// Left Right Case
-	if (balance > 1 && key > node->left->key)
+	if (comparisonHeights > 1 && key > p->left->key)
 	{
-		printf("balance>1 and key(%d) > (node->left->key)(%d)",key,node->left->key);
-		node->left = leftRotate(node->left);
-		return rightRotate(node);
+		//printf("comparisonHeights>1 and key(%d) > (p->left->key)(%d)",key,p->left->key);
+		p->left = leftRotate(p->left);
+		return rightRotate(p);
 	}
 
-	// Right Left Case
-	if (balance < -1 && key < node->right->key)
+	if (comparisonHeights < -1 && key < p->right->key)
 	{
-		printf("balance<-1 and key(%d) < (node->right->key)(%d)",key,node->right->key);
-		node->right = rightRotate(node->right);
-		return leftRotate(node);
+		//printf("comparisonHeights<-1 and key(%d) < (p->right->key)(%d)",key,p->right->key);
+		p->right = rightRotate(p->right);
+		return leftRotate(p);
 	}
 	
-	printf("Returned node : %d\n",node->key);
-	/* return the (unchanged) node pointer */
-	return node;
+	//printf("Returned node : %d\n",p->key);
+
+	return p;
 }
 
-// A utility function to print preorder traversal
-// of the tree.
-// The function also prints height of every node
-void preOrder(struct Node *root)
+//Delete this function
+void preOrder(struct BTNodeType *root)
 {
 	if(root != NULL)
 	{
@@ -238,8 +235,51 @@ int numberOfInput(int* numbers){
 	return count;
 }
 
+//This function calculates the depth level of Binary Search Tree
+int depthLevel(int numOfInputs){
+	//log4 (x) = logy (x) / logy (4)
+	return 3*((log(numOfInputs)/log(4)));
+}
 
-/* Driver program to test above function*/
+int getLevelUtil(struct BTNodeType *p, int key, int level)
+{
+    if (p == NULL)
+        return 0;
+ 
+    if (p->key == key)
+        return level;
+ 
+    int downlevel = getLevelUtil(p->left,
+                                 key, level+1);
+    if (downlevel != 0)
+        return downlevel;
+ 
+    downlevel = getLevelUtil(p->right,
+                             key, level+1);
+    return downlevel;
+}
+
+int getLevel(struct BTNodeType *p, int key)
+{
+    return getLevelUtil(p,key,1);
+}
+
+
+int getElement(struct BTNodeType *p, int key, int depth){
+	int element;
+	
+	if(getLevel(&p,key) == depth){
+		if(p->key == key){
+			return element;
+		}
+		else{
+			element++;
+		}
+	}
+	
+}
+
+
 int main()
 {
 	int* numbers;
@@ -264,25 +304,85 @@ int main()
    	
 	fclose (filePtr);
 	
-	printf("Numbers:\n");
-	for(i=0; i<=numOfInputs; i++){
-		printf("\ni:%d: %d",i,numArray[i]);
-		}
-	printf("\n");
-	struct Node *root = NULL;
+	if(valid){
+		// Print input content3
+			printf("Input Numbers:\n");
+	    for(i=0; i<=numOfInputs; i++){
+	    	printf("%d ",numArray[i]);
+	    	if(i==30){
+	    		printf("\n");
+			}
+	   	}
+		printf("\n");
+		
+		//Create an AVL BTS
+		struct BTNodeType *root = NULL;
 
-	/* Constructing tree given in the above figure */
-	//int numbers[19] = {49,1,2,5,3,8,10,21,32,25,12,78,69,65,70,115,97,152};
-
-	root = insert(root, numArray[0]);
+	    root = insert(root, numArray[0]);
+	    
   		for(i=1; i<=numOfInputs; i++){
   	 			root = insert(root, numArray[i]);
 	    }
 
 
-printf("\nPreorder traversal of the constructed AVL"
-		" tree is \n");
-preOrder(root);
+        printf("\nPreorder traversal of the constructed AVL tree is \n");
+        preOrder(root);
+        
+        //Fix the AVL tree according to second requirement
+        
+        
+        
+        
+        
+        //Print the values
+        int depthL = depthLevel(numOfInputs);
+        printf("\n\nDepth level of BST is : %d\n\n",depthL);
+        
+        //Find the depth level histogram
+        int levels[depthL];
+        for(i=0; i<=depthL; i++){
+        	levels[i]=0;
+		}
+		
+        for(i=0; i<=numOfInputs; i++){
+			int inLevel = getLevel(root,numArray[i]);
+			//printf("%d level is : %d\n",numArray[i],inLevel);
+        	levels[inLevel-1]++;
+		}
+        
+        for(i=0; i<depthL; i++){
+        	printf("Depth Level %d -> %d\n",i,levels[i]);
+		}
+		
+		/*
+		int a;
+		printf("Key value to be searched (Enter 0 to exit) :");
+		scanf("%d\n",&a);
+		*/
+		
+		int searchKey;
+		a:
+		printf("Key value to be searched (Enter 0 to exit) : ");
+		scanf("%d",&searchKey);
+		int depth = getLevel(root,searchKey);
+		//int element = getElement(root, searchKey, depth);
+		if(depth){
+			printf("At Depth level %d, %dth element\n",depth,0);
+			goto a;
+		}
+		else{
+			if(searchKey){
+				printf("%d is not found in BST\n",searchKey);
+				goto a;
+			}
+			else{
+				printf("Exit\n");
+			}	
+		}	
+	}
+	else{
+		printf("\nProgram ended..");
+	}
 
 return 0;
 }
