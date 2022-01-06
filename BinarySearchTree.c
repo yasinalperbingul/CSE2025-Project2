@@ -61,6 +61,7 @@ struct BTNodeType *leftRotate(struct BTNodeType *p)
 	//pLeft > p
 	//pLRight > pLeft
 	//If pLeft would be new top node, then pLeft's left would be p and pLeft's right would be pLRight (rotation)
+	//https://www.geeksforgeeks.org/fix-two-swapped-nodes-of-bst/ : do it!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	pRight->left = p;
 	p->right = pRLeft;
 
@@ -160,18 +161,6 @@ struct BTNodeType* insert(struct BTNodeType* p, int key)
 	return p;
 }
 
-//Delete this function
-void preOrder(struct BTNodeType *root)
-{
-	if(root != NULL)
-	{
-		
-		preOrder(root->left);
-		preOrder(root->right);
-		printf("%d ", root->key);
-	}
-}
-
 //Getting input informations from the file
 int inputValidation(int* numbers){
 	int count = 0;
@@ -241,7 +230,8 @@ int depthLevel(int numOfInputs){
 	return 3*((log(numOfInputs)/log(4)));
 }
 
-int getLevelUtil(struct BTNodeType *p, int key, int level)
+//This function is to find depthLevel of entered key value as parameter
+int levelUnit(struct BTNodeType *p, int key, int level)
 {
     if (p == NULL)
         return 0;
@@ -249,34 +239,111 @@ int getLevelUtil(struct BTNodeType *p, int key, int level)
     if (p->key == key)
         return level;
  
-    int downlevel = getLevelUtil(p->left,
-                                 key, level+1);
-    if (downlevel != 0)
-        return downlevel;
+    int levelOfKey = levelUnit(p->left, key, level+1);
+    if (levelOfKey != 0)
+        return levelOfKey;
  
-    downlevel = getLevelUtil(p->right,
-                             key, level+1);
-    return downlevel;
+    levelOfKey = levelUnit(p->right, key, level+1);
+    return levelOfKey;
 }
 
-int getLevel(struct BTNodeType *p, int key)
+int getDepthLevel(struct BTNodeType *p, int key)
 {
-    return getLevelUtil(p,key,1);
+    return levelUnit(p,key,1);
 }
 
-
-int getElement(struct BTNodeType *p, int key, int depth){
-	int element;
+//This function returns the element number of entered key value as parameter
+int getElement(struct BTNodeType *p, int key)
+{
+	int ind = 0;
+	int element = 0;
 	
-	if(getLevel(&p,key) == depth){
-		if(p->key == key){
-			return element;
-		}
-		else{
-			element++;
-		}
+	if(p == NULL){
+		return 0;
 	}
 	
+	if(p->key < key){
+		if(ind){
+			element = element*2;
+		}
+		else{
+			element = 2;
+		}
+		if(!ind){
+			ind = 1;
+		}
+
+		p->right = getElement(p->right,key);
+	}
+	else if(p->key > key){
+		if(ind){
+			element = element + 1;
+		}
+		else{
+			element = 1;
+		}
+		p->left = getElement(p->left,key);
+	}
+	else{
+		return element;
+	}
+	
+	return element;
+}
+
+//This function finds a leaf
+struct BTNodeType* findLeaf(struct BTNodeType* p){
+	if(p==NULL){
+		return NULL;
+	}
+	
+	if(p->left == NULL && p->right == NULL){
+		return p;
+	}
+	else{
+		//Check this!
+		if(p->right){
+			findLeaf(p->right);
+		}
+		else if(p->left){
+			findLeaf(p->left);
+		}	
+	}
+}
+
+//This function removes a leaf
+struct BTNodeType* removeLeaf(struct BTNodeType* p, int key){
+	if(p==NULL){
+		return NULL;
+	}
+	
+	
+	if(p->key < key){
+		p->right = removeLeaf(p->right,key);
+	}
+	else if(p->key < key){
+		p->left = removeLeaf(p->left,key);
+	}
+	else if(p->key == key){
+		free(p);
+		return NULL;
+	}
+	
+	return p;
+}
+
+//This function inserts removed node leaf to the deepest depht
+struct BTNodeType* insertDepthMost(struct BTNodeType* p,int key){
+	struct BTNodeType* tempLeaf;
+	
+	if(p==NULL){
+		return NULL;
+	}
+	
+	tempLeaf = findLeaf(p);
+	//printf("\nFounded new leaf %d\n",tempLeaf->key);
+	//printf("New depth level : %d\n",getDepthLevel(p,tempLeaf->key));
+	insert(tempLeaf,key);
 }
 
 
@@ -323,20 +390,10 @@ int main()
   		for(i=1; i<=numOfInputs; i++){
   	 			root = insert(root, numArray[i]);
 	    }
-
-
-        printf("\nPreorder traversal of the constructed AVL tree is \n");
-        preOrder(root);
-        
-        //Fix the AVL tree according to second requirement
-        
-        
-        
-        
         
         //Print the values
         int depthL = depthLevel(numOfInputs);
-        printf("\n\nDepth level of BST is : %d\n\n",depthL);
+        printf("\nDepth level of BST is : %d\n",depthL);
         
         //Find the depth level histogram
         int levels[depthL];
@@ -345,7 +402,7 @@ int main()
 		}
 		
         for(i=0; i<=numOfInputs; i++){
-			int inLevel = getLevel(root,numArray[i]);
+			int inLevel = getDepthLevel(root,numArray[i]);
 			//printf("%d level is : %d\n",numArray[i],inLevel);
         	levels[inLevel-1]++;
 		}
@@ -354,18 +411,58 @@ int main()
         	printf("Depth Level %d -> %d\n",i,levels[i]);
 		}
 		
-		/*
-		int a;
-		printf("Key value to be searched (Enter 0 to exit) :");
-		scanf("%d\n",&a);
-		*/
+		
+		//If it doesn't fit with the rules, fix the BST tree according to second requirement	
+		if(levels[depthL-1]==0){
+		//1. find a leaf to remove and add
+		struct BTNodeType* leaf = findLeaf(root);
+		//int depthLeaf = getDepthLevel(root,leaf->key)-1;
+		printf("One of the leaf is : %d\n",leaf->key);
+		
+		//2. remove it
+		printf("Remove leaf");
+		removeLeaf(root,leaf->key);
+		//Check the histpgram
+		for(i=0; i<=depthL; i++){
+        	levels[i]=0;
+		}
+		for(i=0; i<=numOfInputs; i++){
+			int inLevel = getDepthLevel(root,numArray[i]);
+			//printf("%d level is : %d\n",numArray[i],inLevel);
+        	levels[inLevel-1]++;
+		}
+		
+        printf("\n");
+        for(i=0; i<depthL; i++){
+        	printf("Depth Level %d -> %d\n",i,levels[i]);
+		}
+		
+		//3. insert it into downside
+		printf("Insert it.");
+		//printf("Leaf depth : %d",depthLeaf);
+		insertDepthMost(root,leaf->key);
+		//Check the histogram
+		for(i=0; i<=depthL; i++){
+        	levels[i]=0;
+		}
+		for(i=0; i<=numOfInputs; i++){
+			int inLevel = getDepthLevel(root,numArray[i]);
+			//printf("%d level is : %d\n",numArray[i],inLevel);
+        	levels[inLevel-1]++;
+		}
+        printf("\n");
+        for(i=0; i<depthL; i++){
+        	printf("Depth Level %d -> %d\n",i,levels[i]);
+		}
+		}
+		
 		
 		int searchKey;
 		a:
 		printf("Key value to be searched (Enter 0 to exit) : ");
 		scanf("%d",&searchKey);
-		int depth = getLevel(root,searchKey);
-		//int element = getElement(root, searchKey, depth);
+		int depth = getDepthLevel(root,searchKey);
+		//int element = getElement(root, searchKey);
 		if(depth){
 			printf("At Depth level %d, %dth element\n",depth,0);
 			goto a;
