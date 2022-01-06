@@ -61,7 +61,6 @@ struct BTNodeType *leftRotate(struct BTNodeType *p)
 	//pLeft > p
 	//pLRight > pLeft
 	//If pLeft would be new top node, then pLeft's left would be p and pLeft's right would be pLRight (rotation)
-	//https://www.geeksforgeeks.org/fix-two-swapped-nodes-of-bst/ : do it!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	pRight->left = p;
 	p->right = pRLeft;
 
