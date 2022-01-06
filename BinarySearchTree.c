@@ -311,6 +311,25 @@ struct BTNodeType* findLeaf(struct BTNodeType* p){
 	}
 }
 
+struct BTNodeType* findAnotherLeaf(struct BTNodeType* p){
+	if(p==NULL){
+		return NULL;
+	}
+	
+	if(p->left == NULL && p->right == NULL){
+		return p;
+	}
+	else{
+		//Check this!
+		if(p->right){
+			findLeaf(p->right);
+		}
+		if(p->left){
+			findLeaf(p->left);
+		}	
+	}
+}
+
 //This function removes a leaf
 struct BTNodeType* removeLeaf(struct BTNodeType* p, int key){
 	if(p==NULL){
@@ -343,6 +362,7 @@ struct BTNodeType* insertDepthMost(struct BTNodeType* p,int key){
 	tempLeaf = findLeaf(p);
 	//printf("\nFounded new leaf %d\n",tempLeaf->key);
 	//printf("New depth level : %d\n",getDepthLevel(p,tempLeaf->key));
+	//printf("Insert new key %d to new leaf %d\n",key,tempLeaf->key);
 	insert(tempLeaf,key);
 }
 
@@ -397,6 +417,7 @@ int main()
         
         //Find the depth level histogram
         int levels[depthL];
+        /*
         for(i=0; i<=depthL; i++){
         	levels[i]=0;
 		}
@@ -409,54 +430,73 @@ int main()
         
         for(i=0; i<depthL; i++){
         	printf("Depth Level %d -> %d\n",i,levels[i]);
-		}
+		}*/
 		
 		
 		//If it doesn't fit with the rules, fix the BST tree according to second requirement	
-		if(levels[depthL-1]==0){
 		//1. find a leaf to remove and add
-		struct BTNodeType* leaf = findLeaf(root);
-		//int depthLeaf = getDepthLevel(root,leaf->key)-1;
-		printf("One of the leaf is : %d\n",leaf->key);
+		int indicator = 0;
+		while(indicator <2){
+			if(levels[depthL-1]==0){
+			struct BTNodeType* leaf = findLeaf(root);
+			struct BTNodeType* newLeaf;
+			
+			//int depthLeaf = getDepthLevel(root,leaf->key)-1;
+			//printf("One of the leaf is : %d\n",leaf->key);
+			
+			if(indicator){
+				//printf("Remove newLeaf %d\n",newLeaf->key);
+				int inLevel = getDepthLevel(root,newLeaf->key);
+				//printf("depth level of %d : %d\n",newLeaf->key,inLevel);
+				
+				removeLeaf(root,newLeaf->key);
+				levels[inLevel-1]--;
+				
+				//printf("Insert new leaf\n");
+				insertDepthMost(root,newLeaf->key);
+				
+				inLevel = getDepthLevel(root,newLeaf->key);
+				//printf("New depth level of %d : %d\n",newLeaf->key,inLevel);
+				levels[inLevel+1]++;
 		
-		//2. remove it
-		printf("Remove leaf");
-		removeLeaf(root,leaf->key);
-		//Check the histpgram
-		for(i=0; i<=depthL; i++){
-        	levels[i]=0;
+			}
+			else{
+				//2. remove it
+				//printf("Remove leaf");
+				removeLeaf(root,leaf->key);
+	
+				//3. insert it into downside
+				//printf("Insert it.");
+				//printf("Leaf depth : %d",depthLeaf);
+				insertDepthMost(root,leaf->key);
+				
+				//Check the histogram
+				for(i=0; i<=depthL; i++){
+       			levels[i]=0;
+				}
+				for(i=0; i<=numOfInputs; i++){
+				int inLevel = getDepthLevel(root,numArray[i]);
+				//printf("%d level is : %d\n",numArray[i],inLevel);
+       			levels[inLevel-1]++;
+				}
+				/*
+      			printf("\n");
+      			for(i=0; i<depthL; i++){
+      			printf("Depth Level %d -> %d\n",i,levels[i]);
+				}
+				*/
+			}
+			
+		indicator++;
+		newLeaf = findAnotherLeaf(root);
+		//printf("One of the other leaf is : %d\n",newLeaf->key);
 		}
-		for(i=0; i<=numOfInputs; i++){
-			int inLevel = getDepthLevel(root,numArray[i]);
-			//printf("%d level is : %d\n",numArray[i],inLevel);
-        	levels[inLevel-1]++;
 		}
-		
-        printf("\n");
-        for(i=0; i<depthL; i++){
+		printf("\n");
+       	for(i=0; i<depthL; i++){
         	printf("Depth Level %d -> %d\n",i,levels[i]);
 		}
-		
-		//3. insert it into downside
-		printf("Insert it.");
-		//printf("Leaf depth : %d",depthLeaf);
-		insertDepthMost(root,leaf->key);
-		//Check the histogram
-		for(i=0; i<=depthL; i++){
-        	levels[i]=0;
-		}
-		for(i=0; i<=numOfInputs; i++){
-			int inLevel = getDepthLevel(root,numArray[i]);
-			//printf("%d level is : %d\n",numArray[i],inLevel);
-        	levels[inLevel-1]++;
-		}
-        printf("\n");
-        for(i=0; i<depthL; i++){
-        	printf("Depth Level %d -> %d\n",i,levels[i]);
-		}
-		}
-		
-		
+					
 		int searchKey;
 		a:
 		printf("Key value to be searched (Enter 0 to exit) : ");
