@@ -417,7 +417,7 @@ int main()
         
         //Find the depth level histogram
         int levels[depthL];
-        /*
+        
         for(i=0; i<=depthL; i++){
         	levels[i]=0;
 		}
@@ -430,7 +430,7 @@ int main()
         
         for(i=0; i<depthL; i++){
         	printf("Depth Level %d -> %d\n",i,levels[i]);
-		}*/
+		}
 		
 		
 		//If it doesn't fit with the rules, fix the BST tree according to second requirement	
@@ -443,8 +443,8 @@ int main()
 			
 			//int depthLeaf = getDepthLevel(root,leaf->key)-1;
 			//printf("One of the leaf is : %d\n",leaf->key);
-			
 			if(indicator){
+
 				//printf("Remove newLeaf %d\n",newLeaf->key);
 				int inLevel = getDepthLevel(root,newLeaf->key);
 				//printf("depth level of %d : %d\n",newLeaf->key,inLevel);
@@ -485,11 +485,13 @@ int main()
       			printf("Depth Level %d -> %d\n",i,levels[i]);
 				}
 				*/
-			}
-			
+			}	
 		indicator++;
 		newLeaf = findAnotherLeaf(root);
 		//printf("One of the other leaf is : %d\n",newLeaf->key);
+		}
+		else{
+			indicator = 2;
 		}
 		}
 		printf("\n");
