@@ -129,26 +129,26 @@ struct BTNodeType* insert(struct BTNodeType* p, int key)
 	//printf("Height of inserted node after update %d: %d\n",p->key,p->height);
 	
 	//Compare the left and right height
-	int comparisonHeights = compareHeights(p);
+	int subtractionHeights  = compareHeights(p);
 
-	if (comparisonHeights > 1 && key < p->left->key){
+	if (subtractionHeights  > 1 && key < p->left->key){
 		//printf("comparisonHeights>1 and key(%d) < (p->left->key)(%d)",key,p->left->key);
 		return rightRotate(p);
 	}
 		
-	if (comparisonHeights < -1 && key > p->right->key){
+	if (subtractionHeights  < -1 && key > p->right->key){
 		//printf("comparisonHeights<-1 and key(%d) > (p->right->key)(%d)",key,p->right->key);
 		return leftRotate(p);
 	}
 		
-	if (comparisonHeights > 1 && key > p->left->key)
+	if (subtractionHeights  > 1 && key > p->left->key)
 	{
 		//printf("comparisonHeights>1 and key(%d) > (p->left->key)(%d)",key,p->left->key);
 		p->left = leftRotate(p->left);
 		return rightRotate(p);
 	}
 
-	if (comparisonHeights < -1 && key < p->right->key)
+	if (subtractionHeights  < -1 && key < p->right->key)
 	{
 		//printf("comparisonHeights<-1 and key(%d) < (p->right->key)(%d)",key,p->right->key);
 		p->right = rightRotate(p->right);
@@ -164,7 +164,7 @@ struct BTNodeType* insert(struct BTNodeType* p, int key)
 int inputValidation(int* numbers){
 	int count = 0;
 	int valid = 1;
-	int i=0;
+	int i=0, j=0;
 	// Getting input values
 	FILE *filePtr;
 	filePtr = fopen("input.txt", "r") ;
@@ -197,12 +197,25 @@ int inputValidation(int* numbers){
 		}
 	}
 	
+	if(valid){
+		for(i=0; i<count-1; i++){
+			for(j=i+1; j<count; j++){
+				if((*(numbers+i)) == (*(numbers+j))){
+					valid = 0;
+				}
+			}
+		}
+		
+		if(!valid){
+				printf("Error: The input file has replicated numbers.");
+		}
+	}
+	
 	return valid;
 }
 
 int numberOfInput(int* numbers){
 	int count = 0;
-	int valid = 1;
 	
 	// Getting input values
 	FILE *filePtr;
@@ -373,26 +386,32 @@ int main()
 
 	// Check the file content is valid or not.
 	valid = inputValidation(&numbers);
-	numOfInputs = numberOfInput(&numbers);
-	int numArray[numOfInputs];
-	
-	// Getting input values
-	int i=0;
-	FILE *filePtr;
-	filePtr = fopen("input.txt", "r") ;
-	fscanf (filePtr, "%d", &numArray[i]);
-	while (!feof (filePtr)){  
-   		//printf ("\ni: %d :: %d ",i, numArray[i]);
-   		i++;
-   		fscanf (filePtr, "%d", &numArray[i]);      
-   	}
-   	//printf ("\ni: %d :: %d ",i, numArray[i]);
-   	
-	fclose (filePtr);
-	
+
 	if(valid){
-		// Print input content3
-			printf("Input Numbers:\n");
+		numOfInputs = numberOfInput(&numbers);
+		int numArray[numOfInputs];
+	
+		// Getting input values
+		int i=0;
+		FILE *filePtr;
+		filePtr = fopen("input.txt", "r") ;
+	
+		fscanf (filePtr, "%d", &numArray[i]);
+	
+	
+		while (!feof (filePtr)){  
+   			//printf ("\ni: %d :: %d ",i, numArray[i]);
+   			i++;
+   			fscanf (filePtr, "%d", &numArray[i]);      
+   		}
+   	
+   		//printf ("\ni: %d :: %d ",i, numArray[i]);
+   	
+		fclose (filePtr);
+	
+		// Print input content
+		/*
+		printf("Input Numbers:\n");
 	    for(i=0; i<=numOfInputs; i++){
 	    	printf("%d ",numArray[i]);
 	    	if(i==30){
@@ -400,7 +419,7 @@ int main()
 			}
 	   	}
 		printf("\n");
-		
+		*/
 		//Create an AVL BTS
 		struct BTNodeType *root = NULL;
 
@@ -412,7 +431,7 @@ int main()
         
         //Print the values
         int depthL = depthLevel(numOfInputs);
-        printf("\nDepth level of BST is : %d\n",depthL);
+        printf("Depth level of BST is : %d\n",depthL);
         
         //Find the depth level histogram
         int levels[depthL];
@@ -426,16 +445,17 @@ int main()
 			//printf("%d level is : %d\n",numArray[i],inLevel);
         	levels[inLevel-1]++;
 		}
-        
+        /*
         for(i=0; i<depthL; i++){
         	printf("Depth Level %d -> %d\n",i,levels[i]);
 		}
-		
+		*/
 		
 		//If it doesn't fit with the rules, fix the BST tree according to second requirement	
-		//1. find a leaf to remove and add
+		
 		int indicator = 0;
-		while(indicator <2){
+		while(indicator <1000){
+			//1. find a leaf to remove and add
 			if(levels[depthL-1]==0){
 			struct BTNodeType* leaf = findLeaf(root);
 			struct BTNodeType* newLeaf;
@@ -490,7 +510,7 @@ int main()
 		//printf("One of the other leaf is : %d\n",newLeaf->key);
 		}
 		else{
-			indicator = 2;
+			indicator = 1000;
 		}
 		}
 		printf("\n");
